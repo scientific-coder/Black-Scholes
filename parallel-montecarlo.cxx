@@ -15,9 +15,10 @@
 struct seeder_t{
   unsigned int operator()() const{ 
     //    std::cerr<<"seeding\n";
-    #pragma omp atomic
-    ++c;
-    return static_cast<unsigned long int>(time(0))+ c;
+    unsigned long int my_c; 
+    #pragma omp critical
+    { my_c= ++c; }
+    return static_cast<unsigned long int>(time(0))+ my_c;
   }
   static unsigned long int c;
 };
