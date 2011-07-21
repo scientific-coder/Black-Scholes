@@ -32,10 +32,10 @@ template<typename Engine, typename Seeder=seeder_t> struct seed_on_copy : Engine
   seeder_type& s;
 };
 
-template<std::size_t n_steps=365, std::size_t num_trials=20000, typename Engine=std::tr1::mt19937>
-struct edo_stoch {
+template<std::size_t n_steps=365, std::size_t num_trials=200000, typename Engine=std::tr1::mt19937>
+struct montecarlo_pricing {
 
-  edo_stoch(): years_to_maturity(1.), risk_free_rate(.03), volatility(.2){}
+  montecarlo_pricing(): years_to_maturity(1.), risk_free_rate(.03), volatility(.2){}
   // we take the engine as parameter to be thread safe : the engine will be thread-private
   template<typename G>
   double step(double s, G& g)const{
@@ -93,8 +93,8 @@ private :
 };
 
 int main(int argc, char* argv[]){
-  edo_stoch<> s;
+  montecarlo_pricing<> pricing;
   boost::progress_timer t;
-  s();
+  pricing();
   return 0;
 }
