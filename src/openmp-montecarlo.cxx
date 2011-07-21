@@ -7,16 +7,15 @@
 #include <iostream>
 #include <time.h>
 
-// g++ parallel-montecarlo.cxx  -o parallel-montecarlo -O4 -march=native -fopenmp -lgomp
-// ./parallel-montecarlo
+// g++ openmp-montecarlo.cxx  -o openmp-montecarlo -O4 -march=native -fopenmp -lgomp
+// ./openmp-montecarlo
 
 
 // returns a new seed upon each call
 struct seeder_t{
   unsigned int operator()() const{ 
-    //    std::cerr<<"seeding\n";
     unsigned long int my_c; 
-    #pragma omp critical
+#pragma omp critical
     { my_c= ++c; }
     return static_cast<unsigned long int>(time(0))+ my_c;
   }
@@ -81,9 +80,9 @@ struct edo_stoch {
     std::pair<double, double> mc(montecarlo_values(strike_price, stock_price))
       , formula(formula_values(strike_price, stock_price));
     std::cerr<<"delta put:"<<(mc.second-formula.second)
-	     <<"delta call"<< (mc.first-formula.first)<<std::endl;
+	     <<"\tdelta call:"<< (mc.first-formula.first)<<std::endl;
     std::cerr<<"mc put:"<<mc.second<<" put:"<<formula.second
-	     << " mc call:"<< mc.first<<" call:"<<formula.first<<std::endl;
+	     << "\tmc call:"<< mc.first<<" call:"<<formula.first<<std::endl;
   }
 private :
   // just to factor common expression in Monte-Carlo estimate.
