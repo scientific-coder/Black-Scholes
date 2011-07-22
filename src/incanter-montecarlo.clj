@@ -26,36 +26,25 @@
                                             (java.lang.Math/exp (* (- risk-free-rate) years-to-maturity))
                                             (cdf-normal (- d2)))
                                          (* stock-price (cdf-normal (- d1))))]
-                        [put-price call-price])]
+                        [put-price call-price])
+        _ (print "formula:" black-scholes)]
     (letfn [(f
              [value]
              (/ (* value (java.lang.Math/exp (* (- risk-free-rate)
                                                 years-to-maturity)))
                 num-trials))
             (compute-step
-             [rnd-nums-init]
-             (loop [rnd-nums rnd-nums-init
-                    i n-steps
-                    result stock-price]
-               (if (== i 0)
-                 [result rnd-nums]
-                 (recur (next rnd-nums)
-                        (dec i)
-                        (* result (+ 1. (* (first rnd-nums)
-                                           (java.lang.Math/sqrt (/ years-to-maturity
-                                                                   n-steps)))
-                                     (* risk-free-rate
-                                        (/ years-to-maturity n-steps))))))))]
-      (loop [trial num-trials
-             put-value 0.
-             call-value 0.
-             random-nbs (sample-normal (* n-steps num-trials) :mean 0. :sd volatility)]
-        (if (== trial 0)
-          (do (print "formula gave:" black-scholes) (map f [put-value call-value]))
-          (let [[computed-price next-random-nbs] (compute-step random-nbs)
-                delta-price (- strike-price computed-price)
-                [next-put next-call] (if (pos? delta-price)
-                                       [(+ put-value delta-price) call-value]
-                                       [put-value (- call-value delta-price)])]
-            ( recur (dec trial) next-put next-call next-random-nbs)))))))
+             [price rnd-number]
+             (* price (+ 1.
+                         (* rnd-number (java.lang.Math/sqrt (/ years-to-maturity n-steps)))
+                         (* risk-free-rate (/ years-to-maturity n-steps)))))
+            (combine
+             [[put-value call-value] rnd-nums]
+             (let [delta-price (- strike-price (reduce compute-step stock-price rnd-nums))]
+               (if (pos? delta-price)
+                 [(+ put-value delta-price) call-value]
+                 [put-value (- call-value delta-price)])))]
+      (map f (reduce combine [0. 0.]
+                     (partition n-steps (sample-normal (* n-steps num-trials)
+                                                       :mean 0. :sd volatility)))))))
 (time (montecarlo-put-call 110 100))
