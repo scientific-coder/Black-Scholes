@@ -1,3 +1,4 @@
+# (C) scientific-coder 2011 GPL v3 or later
 # for now used in incanter console only 6x slower than C++ single core and 18x than multicore !
 (use '(incanter core stats))
 
