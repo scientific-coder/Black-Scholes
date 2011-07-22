@@ -6,7 +6,7 @@
   (new cern.jet.random.tdouble.Normal 10 5 (new cern.jet.random.tdouble.engine.DoubleMersenneTwister )))
 #http://incanter.org/docs/parallelcolt/api/cern/jet/random/tdouble/Normal.html
 
-# :TODO: implement formula with cdf-normal
+# :DONE: implement formula with cdf-normal
 
 (defn montecarlo-put-call [strike-price stock-price]
   (let [n-steps 365
