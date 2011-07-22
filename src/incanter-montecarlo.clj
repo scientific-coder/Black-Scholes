@@ -13,7 +13,20 @@
         num-trials 200000
         years-to-maturity 1.
         risk-free-rate 0.03
-        volatility 0.2]
+        volatility 0.2
+        black-scholes (let [d1 (/ (+ (java.lang.Math/log (/ stock-price strike-price))
+                                     (* (+ risk-free-rate (/ (* volatility volatility) 2.))
+                                        years-to-maturity))
+                                  (* volatility (java.lang.Math/sqrt years-to-maturity)))
+                            d2 (- d1 (* volatility (java.lang.Math/sqrt years-to-maturity)))
+                            call-price (- (* stock-price (cdf-normal d1))
+                                          (* strike-price (java.lang.Math/exp (* (- risk-free-rate) years-to-maturity))
+                                             (cdf-normal d2)))
+                            put-price (- (* strike-price
+                                            (java.lang.Math/exp (* (- risk-free-rate) years-to-maturity))
+                                            (cdf-normal (- d2)))
+                                         (* stock-price (cdf-normal (- d1))))]
+                        [put-price call-price])]
     (letfn [(f
              [value]
              (/ (* value (java.lang.Math/exp (* (- risk-free-rate)
@@ -38,7 +51,7 @@
              call-value 0.
              random-nbs (sample-normal (* n-steps num-trials) :mean 0. :sd volatility)]
         (if (== trial 0)
-          (map f [put-value call-value])
+          (do (print "formula gave:" black-scholes) (map f [put-value call-value]))
           (let [[computed-price next-random-nbs] (compute-step random-nbs)
                 delta-price (- strike-price computed-price)
                 [next-put next-call] (if (pos? delta-price)
