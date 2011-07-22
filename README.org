@@ -1,1 +1,14 @@
-Black Scholes pricing as an example of scientific computing in C++ ( soon also in Clojure ?).
+#+TITLE: Black Scholes pricing as an example of scientific / finance computing.
+
+
+* :DONE: multicore C++
+** C++ tr1 & OpenMP
+** C++0X & std::async
+
+* :TODO: GPU & Functional
+** Clojure
+*** :DONE: single core basic
+*** :TODO: type hinting
+*** :TODO: multicore
+** OpenCL (from C++ and / or Clojure )
+
