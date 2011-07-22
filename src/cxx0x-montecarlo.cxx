@@ -54,18 +54,19 @@ struct montecarlo_pricing {
     typename engine_t::seeder_type seeder;
     std::tr1::variate_generator<engine_t, std::tr1::normal_distribution<double> > 
       g(engine_t(seeder), (std::tr1::normal_distribution<double>(0., volatility)));
-
-    std::size_t const nb_threads(std::min(static_cast<std::size_t>(std::max(std::thread::hardware_concurrency(), 1U)), num_trials));
+    // on my 4 cores, std::thread::hardware_concurrency() == 0 ???
+    std::size_t const nb_threads(std::min(static_cast<std::size_t>(std::max(/* std::thread::hardware_concurrency()*/ 4U, 1U)), num_trials));
+    std::cerr<< "nb threads :"<< nb_threads << "hw:"<< std::thread::hardware_concurrency() << std::endl;
     typedef std::tuple<double, double> result_type; // put and call values, std::pair is so passé :-) 
     std::vector<std::future<result_type> > results;
-    std::atomic<std::size_t> remaining_trials(num_trials);
+    std::atomic<std::size_t> remaining_trials(0);
  // there are no std::atomic<> for floating point data, so we cannot have global result (otherwise we could have afforded
  // the small contention at each write
     for(std::size_t i(0); i != nb_threads; ++i){
-      results.push_back(std::async([=,&remaining_trials]()-> result_type {
+      results.push_back(std::async(std::launch::async, [=,&remaining_trials]()-> result_type {
             decltype(g) local_g(g);
             double call_value(0.), put_value(0.);
-            while(remaining_trials--){
+            while(remaining_trials++ < num_trials){
               double const delta_price(strike_price - this->step(stock_price, local_g));
               *(delta_price >0. ? &put_value : &call_value)+= delta_price;
             }
