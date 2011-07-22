@@ -8,6 +8,7 @@
 #include <boost/math/distributions/normal.hpp>
 #include <iostream>
 #include <time.h>
+#include <chrono>
 
 /* Work splitting between thread easier because we work from rng output instead of a collection of data.
    So we do not have to worry about memory locality. But we do have to worry about the rng state : we do not want to share
@@ -111,7 +112,9 @@ int main (int argc, char* argv []) {
 
   montecarlo_pricing<> pricing;
   boost::progress_timer t;
+  std::chrono::system_clock::time_point const start (std::chrono::system_clock::now());
   pricing();
-
+  std::chrono::duration<double> const delta(std::chrono::system_clock::now() - start);
+  std::cerr<< "wallclock time: "<< delta.count()  <<std::endl;
   return 0;
 }

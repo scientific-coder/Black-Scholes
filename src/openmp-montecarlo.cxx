@@ -8,8 +8,8 @@
 #include <time.h>
 
 // g++ openmp-montecarlo.cxx  -o openmp-montecarlo -O4 -march=native -fopenmp -lgomp
-// ./openmp-montecarlo
-
+// time ./openmp-montecarlo
+// use time to know the wallclock time (boost timer gives the cpu clock)
 
 // returns a new seed upon each call
 struct seeder_t{
