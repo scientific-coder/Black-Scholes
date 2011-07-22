@@ -39,7 +39,7 @@ struct montecarlo_pricing {
   // we take the engine as parameter to be thread safe : the engine will be thread-private
   template<typename G>
   double step(double s, G& g)const{
-    for(int i(1); i != n_steps; ++i)
+    for(int i(0); i != n_steps; ++i)
       { s*= 1. + g()*std::sqrt(years_to_maturity/n_steps) 
 	  + risk_free_rate* years_to_maturity/n_steps ; }
     return s;
