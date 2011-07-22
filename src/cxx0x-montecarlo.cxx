@@ -63,7 +63,7 @@ struct montecarlo_pricing {
  // there are no std::atomic<> for floating point data, so we cannot have global result (otherwise we could have afforded
  // the small contention at each write
     for(std::size_t i(0); i != nb_threads; ++i){
-      results.push_back(std::async(std::launch::async, [=,&remaining_trials]()-> result_type {
+      results.push_back(std::async(std::launch::async, [&]()-> result_type {
             decltype(g) local_g(g);
             double call_value(0.), put_value(0.);
             while(remaining_trials++ < num_trials){
