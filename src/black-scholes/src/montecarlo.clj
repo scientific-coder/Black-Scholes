@@ -1,6 +1,6 @@
 ;;; (C) scientific-coder 2011 GPL v3 or later
-;;; for now used in incanter console only 6x slower than C++ single core and 18x than multicore !
-;;
+;;; for now used in incanter console only 6x slower than C++ single core and 10x than multicore !
+;; requires incanter/parallelcolt cf project.clj for lein
 ;;; http://incanter.org/docs/parallelcolt/api/cern/jet/random/tdouble/Normal.html
 
 ;;; :DONE: implement formula with cdf-normal
