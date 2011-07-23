@@ -1,17 +1,19 @@
-# (C) scientific-coder 2011 GPL v3 or later
-# for now used in incanter console only 6x slower than C++ single core and 18x than multicore !
+;;; (C) scientific-coder 2011 GPL v3 or later
+;;; for now used in incanter console only 6x slower than C++ single core and 18x than multicore !
 (use '(incanter core stats))
 
 (comment 
   (cern.jet.random.tdouble.Normal/staticNextDouble mean sd)
   (new cern.jet.random.tdouble.Normal 10 5 (new cern.jet.random.tdouble.engine.DoubleMersenneTwister )))
-#http://incanter.org/docs/parallelcolt/api/cern/jet/random/tdouble/Normal.html
+;;; http://incanter.org/docs/parallelcolt/api/cern/jet/random/tdouble/Normal.html
 
-# :DONE: implement formula with cdf-normal
+;;; :DONE: implement formula with cdf-normal
+;;; :DONE: multicore
+;;; :TODO: move away from incanter :( for 1.3 type hinting :)
 
 (defn montecarlo-put-call [strike-price stock-price]
   (let [n-steps 365
-        num-trials 200000
+        n-trials 200000
         years-to-maturity 1.
         risk-free-rate 0.03
         volatility 0.2
@@ -33,19 +35,33 @@
              [value]
              (/ (* value (java.lang.Math/exp (* (- risk-free-rate)
                                                 years-to-maturity)))
-                num-trials))
+                n-trials))
             (compute-step
              [price rnd-number]
              (* price (+ 1.
                          (* rnd-number (java.lang.Math/sqrt (/ years-to-maturity n-steps)))
                          (* risk-free-rate (/ years-to-maturity n-steps)))))
-            (combine
-             [[put-value call-value] rnd-nums]
-             (let [delta-price (- strike-price (reduce compute-step stock-price rnd-nums))]
-               (if (pos? delta-price)
-                 [(+ put-value delta-price) call-value]
-                 [put-value (- call-value delta-price)])))]
-      (map f (reduce combine [0. 0.]
-                     (partition n-steps (sample-normal (* n-steps num-trials)
-                                                       :mean 0. :sd volatility)))))))
+            
+            (make-future-workers
+             []
+             (let [seed (atom 0)
+                   n-iters-todo (atom n-trials)]
+               (fn []
+                 (future
+                   (let [double-normal-rng (new cern.jet.random.tdouble.Normal 0. volatility
+                                                (new cern.jet.random.tdouble.engine.DoubleMersenneTwister (swap! seed inc)))]
+                     (loop [put-value 0.
+                            call-value 0.]
+                       (if (neg? (swap! n-iters-todo dec))
+                         [put-value call-value]
+                         (let [delta-price (- strike-price (reduce compute-step stock-price
+                                                                   (repeatedly n-steps #(.nextDouble double-normal-rng 0. volatility))))
+                               [next-put-value next-call-value] (if (pos? delta-price)
+                                                                  [(+ put-value delta-price) call-value]
+                                                                  [put-value (- call-value delta-price)])]
+                           (recur next-put-value next-call-value)))))))))]
+      (map f (reduce #(map + % (deref %2))
+                     [0. 0.]
+                     (doall (repeatedly (.. Runtime getRuntime availableProcessors)
+                                         (make-future-workers))))))))
 (time (montecarlo-put-call 110 100))
