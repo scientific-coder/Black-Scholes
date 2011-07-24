@@ -19,6 +19,7 @@
         years-to-maturity 1.
         risk-free-rate 0.03
         volatility 0.2
+        coeff (Math/sqrt (/ years-to-maturity n-steps))
         black-scholes (letfn [(cdf-normal
                                [x]
                                (.cdf (Normal. 0. 1. (DoubleMersenneTwister. ) ) x))]
@@ -45,7 +46,7 @@
             (compute-step
              ^:static ^double [^double price ^double rnd-number]
              (* price (+ 1.
-                         (* rnd-number (Math/sqrt (/ years-to-maturity n-steps)))
+                         (* rnd-number coeff)
                          (* risk-free-rate (/ years-to-maturity n-steps)))))
             
             (make-future-workers
