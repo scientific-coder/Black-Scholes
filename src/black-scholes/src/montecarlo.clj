@@ -43,12 +43,6 @@
              (/ (* value (Math/exp (* (- risk-free-rate)
                                       years-to-maturity)))
                 n-trials))
-            (compute-step
-             ^:static ^double [^double price ^double rnd-number]
-             (* price (+ 1.
-                         (* rnd-number coeff)
-                         (* risk-free-rate (/ years-to-maturity n-steps)))))
-            
             (make-future-workers
              []
              (let [seed (atom 0)
@@ -62,11 +56,15 @@
                        (if (neg? (swap! n-iters-todo dec))
                          [put-value call-value]
                          (let [delta-price (- strike-price
-                                              (reduce compute-step stock-price
-                                                      (repeatedly n-steps
-                                                                  #(.nextDouble double-normal-rng
-                                                                                0. volatility))))
-                               ]
+                                              (loop [price stock-price
+                                                     s n-steps]
+                                                (if (== s 0)
+                                                  price
+                                                  (recur (* price (+ 1.
+                                                                     (* (.nextDouble double-normal-rng 0. volatility)
+                                                                        coeff)
+                                                                     (* risk-free-rate (/ years-to-maturity n-steps))))
+                                                         (dec s)))))]
                            (if (pos? delta-price)
                              (recur  (+ put-value delta-price) call-value)
                              (recur  put-value (- call-value delta-price)))))))))))]
