@@ -66,10 +66,10 @@
                                                       (repeatedly n-steps
                                                                   #(.nextDouble double-normal-rng
                                                                                 0. volatility))))
-                               [next-put-value next-call-value] (if (pos? delta-price)
-                                                                  [(+ put-value delta-price) call-value]
-                                                                  [put-value (- call-value delta-price)])]
-                           (recur  next-put-value next-call-value)))))))))]
+                               ]
+                           (if (pos? delta-price)
+                             (recur  (+ put-value delta-price) call-value)
+                             (recur  put-value (- call-value delta-price)))))))))))]
       (map f (reduce #(map + % (deref %2))
                      [0. 0.]
                      (doall (repeatedly (.. Runtime getRuntime availableProcessors)
